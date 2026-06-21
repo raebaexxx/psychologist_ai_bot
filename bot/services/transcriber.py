@@ -37,7 +37,7 @@ async def wait_ready(timeout: float | None = None) -> bool:
         return False
 
 
-async def init_transcriber_async(model_size: str = "medium", device: str = "auto") -> None:
+async def init_transcriber_async(model_size: str = "medium", device: str = "cpu") -> None:
     global _model, _loading
 
     if _loading or is_ready():
