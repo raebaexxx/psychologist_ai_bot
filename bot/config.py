@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     whisper_model_size: str = "medium"
     database_path: str = "data/diary.db"
     custom_prompt_path: str = ""
+    hf_token: str = ""
 
 
 settings = Settings()
