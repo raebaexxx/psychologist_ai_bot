@@ -6,6 +6,8 @@ from pathlib import Path
 
 from faster_whisper import WhisperModel
 
+from bot.services.punctuator import restore_punctuation as _restore_punctuation
+
 logger = logging.getLogger(__name__)
 
 _model: WhisperModel | None = None
@@ -83,9 +85,14 @@ async def transcribe_voice(ogg_path: str | Path) -> str:
                 ],
                 capture_output=True, check=True,
             )
-            segments, info = _model.transcribe(wav_path, beam_size=5)
+            segments, info = _model.transcribe(
+                wav_path,
+                beam_size=5,
+                vad_filter=True,
+            )
             text_parts = [seg.text for seg in segments]
-            return info.language, " ".join(text_parts)
+            raw_text = " ".join(text_parts)
+            return info.language, _restore_punctuation(raw_text)
         finally:
             Path(wav_path).unlink(missing_ok=True)
 
