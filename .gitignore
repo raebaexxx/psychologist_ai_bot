@@ -9,4 +9,5 @@ venv/
 *.db
 *.wav
 downloads/
+data/
 .DS_Store
