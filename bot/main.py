@@ -9,7 +9,13 @@ from bot.database.db import init_db
 from bot.handlers import commands, voice, text
 from bot.services.transcriber import init_transcriber
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("aiogram").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
