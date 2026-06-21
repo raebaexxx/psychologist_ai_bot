@@ -12,10 +12,6 @@ from bot.services.transcriber import init_transcriber_async
 
 os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
 
-for key in ("all_proxy", "ALL_PROXY", "http_proxy", "HTTP_PROXY",
-             "https_proxy", "HTTPS_PROXY"):
-    os.environ.pop(key, None)
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -40,10 +36,21 @@ async def on_shutdown() -> None:
     logger.info("Shutting down...")
 
 
+def _make_session():
+    from aiogram.client.session.aiohttp import AiohttpSession
+
+    proxy = os.environ.get("all_proxy") or os.environ.get("ALL_PROXY") or ""
+    if proxy:
+        logger.info("Using proxy: %s", proxy)
+        return AiohttpSession(proxy=proxy)
+    return AiohttpSession()
+
+
 async def main() -> None:
     bot = Bot(
         token=settings.bot_token,
         default=DefaultBotProperties(parse_mode="Markdown"),
+        session=_make_session(),
     )
     dp = Dispatcher()
 
