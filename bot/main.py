@@ -9,6 +9,7 @@ from bot.config import settings
 from bot.database.db import init_db
 from bot.handlers import commands, voice, text
 from bot.services.transcriber import init_transcriber_async
+from bot.services.reminder import reminder_daemon
 
 os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
 
@@ -24,9 +25,12 @@ logging.getLogger("ctranslate2").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-async def on_startup() -> None:
+async def on_startup(bot: Bot) -> None:
     logger.info("Initializing database...")
     await init_db(settings.database_path)
+
+    logger.info("Starting reminder daemon...")
+    asyncio.create_task(reminder_daemon(bot))
 
     logger.info("Loading Whisper model in background...")
     asyncio.create_task(init_transcriber_async(settings.whisper_model_size))
