@@ -10,7 +10,11 @@ from bot.database.db import init_db
 from bot.handlers import commands, voice, text
 from bot.services.transcriber import init_transcriber_async
 
-os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
+
+for key in ("all_proxy", "ALL_PROXY", "http_proxy", "HTTP_PROXY",
+             "https_proxy", "HTTPS_PROXY"):
+    os.environ.pop(key, None)
 
 logging.basicConfig(
     level=logging.INFO,
