@@ -6,7 +6,7 @@ from aiogram.types import Message, BufferedInputFile
 
 from bot.database import models
 from bot.database.db import get_db
-from bot.services.transcriber import transcribe_voice
+from bot.services.transcriber import transcribe_voice, wait_ready
 from bot.services.openrouter import ask_therapist
 from bot.services.diary import generate_diary_md
 
@@ -18,6 +18,13 @@ async def handle_voice(message: Message) -> None:
     status_msg = await message.answer("🎤 Слышу тебя... расшифровываю...")
 
     try:
+        ready = await wait_ready(timeout=180)
+        if not ready:
+            await status_msg.edit_text(
+                "⏳ Модель распознавания ещё загружается. Подожди немного и попробуй снова."
+            )
+            return
+
         voice = message.voice
         file = await message.bot.get_file(voice.file_id)
 
@@ -26,7 +33,7 @@ async def handle_voice(message: Message) -> None:
 
         await message.bot.download_file(file.file_path, ogg_path)
 
-        await status_msg.edit_text("📝 Анализирую твоё сообщение...")
+        await status_msg.edit_text("📝 Расшифровываю аудио...")
         language, transcript = await transcribe_voice(ogg_path)
         ogg_path.unlink(missing_ok=True)
 

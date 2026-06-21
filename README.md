@@ -69,13 +69,20 @@ brew install ffmpeg
 sudo pacman -S ffmpeg
 ```
 
-### 5. Запустить
+### 5. Скачать модель Whisper (одноразово)
+
+```bash
+uv run python scripts/download_model.py medium
+```
+
+Это скачает модель ~1.5 ГБ в `~/.cache/huggingface/hub/`.
+Если у тебя прокси (`all_proxy`), скрипт сам его уберёт на время скачивания.
+
+### 6. Запустить
 
 ```bash
 uv run python -m bot.main
 ```
-
-При первом запуске faster-whisper скачает модель `medium` (~1.5 ГБ) — это одноразово.
 
 ## Системный промпт
 

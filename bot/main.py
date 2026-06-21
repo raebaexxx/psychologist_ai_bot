@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -7,7 +8,9 @@ from aiogram.client.default import DefaultBotProperties
 from bot.config import settings
 from bot.database.db import init_db
 from bot.handlers import commands, voice, text
-from bot.services.transcriber import init_transcriber
+from bot.services.transcriber import init_transcriber_async
+
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -16,6 +19,8 @@ logging.basicConfig(
 )
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("aiogram").setLevel(logging.WARNING)
+logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
+logging.getLogger("ctranslate2").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
@@ -23,10 +28,8 @@ async def on_startup() -> None:
     logger.info("Initializing database...")
     await init_db(settings.database_path)
 
-    logger.info("Loading Whisper model (%s)...", settings.whisper_model_size)
-    init_transcriber(settings.whisper_model_size)
-
-    logger.info("Bot is ready!")
+    logger.info("Loading Whisper model in background...")
+    asyncio.create_task(init_transcriber_async(settings.whisper_model_size))
 
 
 async def on_shutdown() -> None:
@@ -48,7 +51,7 @@ async def main() -> None:
     dp.shutdown.register(on_shutdown)
 
     try:
-        logger.info("Starting bot polling...")
+        logger.info("Bot started! The model will load in background.")
         await dp.start_polling(bot)
     finally:
         await bot.session.close()
