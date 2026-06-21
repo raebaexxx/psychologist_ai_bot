@@ -110,6 +110,40 @@ HF_TOKEN=hf_xxxxx uv run python scripts/download_model.py medium
 uv run python -m bot.main
 ```
 
+## Запуск на сервере через tmux
+
+### Первый запуск
+
+```bash
+tmux new-session -s psychologist
+cd ~/psychologist_ai_bot
+uv run python -m bot.main
+```
+
+Нажми `Ctrl+B`, затем `D` — отключиться от сессии. Бот останется работать в фоне.
+
+### Управление
+
+| Действие | Команда |
+|---|---|
+| Подключиться к сессии | `tmux attach -t psychologist` |
+| Отключиться (оставив бота работать) | `Ctrl+B`, затем `D` |
+| Остановить бота | `tmux attach -t psychologist`, затем `Ctrl+C` |
+| Перезапустить бота | `tmux attach -t psychologist`, `Ctrl+C`, стрелка вверх, `Enter` |
+| Посмотреть список сессий | `tmux ls` |
+| Убить сессию | `tmux kill-session -t psychologist` |
+
+### Автозапуск при старте сервера (crontab)
+
+```bash
+crontab -e
+```
+
+Добавить строку:
+```
+@reboot cd /root/psychologist_ai_bot && tmux new-session -d -s psychologist 'uv run python -m bot.main'
+```
+
 ## Системный промпт
 
 Промпт, задающий роль психолога, лежит в `bot/prompts/default_therapist.txt`. Ты можешь:
