@@ -78,6 +78,14 @@ uv run python scripts/download_model.py medium
 Это скачает модель ~1.5 ГБ в `~/.cache/huggingface/hub/`.
 Если у тебя прокси (`all_proxy`), скрипт сам его уберёт на время скачивания.
 
+**Для ускорения скачивания** — создай бесплатный токен на [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) и передай его:
+
+```bash
+HF_TOKEN=hf_xxxxx uv run python scripts/download_model.py medium
+```
+
+Или добавь `HF_TOKEN=hf_xxxxx` в `.env`.
+
 ### 6. Запустить
 
 ```bash
