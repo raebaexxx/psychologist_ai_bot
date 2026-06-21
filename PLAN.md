@@ -15,6 +15,8 @@ Telegram бот-психолог/терапевт:
 | БД | SQLite (через `aiosqlite`) |
 | Формат файла | .md с полной расшифровкой |
 | Аудио-конвертер | ffmpeg (ogg → wav, 16kHz, моно) |
+| Пакетный менеджер | uv |
+| Промпт | `bot/prompts/default_therapist.txt` + кастомный через `CUSTOM_PROMPT_PATH` в .env |
 
 ## Архитектура
 
@@ -41,11 +43,10 @@ psychologist_ai_bot/
 │   └── prompts/
 │       ├── __init__.py
 │       └── therapist.py     # системный промпт психолога
-├── .env                     # BOT_TOKEN, OPENROUTER_API_KEY
+├── .env                     # BOT_TOKEN, OPENROUTER_API_KEY, CUSTOM_PROMPT_PATH
 ├── .gitignore
-├── requirements.txt
-├── Dockerfile
-└── docker-compose.yml
+├── pyproject.toml
+└── uv.lock
 ```
 
 ## Поток работы (голосовое сообщение)
@@ -64,14 +65,13 @@ psychologist_ai_bot/
 
 ## Этапы реализации
 1. Сохранение плана, Git init + GitHub
-2. Структура, requirements.txt, .env
+2. Структура, pyproject.toml (uv), .env
 3. config.py
 4. database/
-5. prompts/therapist.py
+5. prompts/default_therapist.txt + therapist.py (загрузка из файла, поддержка кастомного промпта)
 6. services/transcriber.py
 7. services/openrouter.py
 8. services/diary.py
 9. handlers/ (voice, text, commands)
 10. main.py
-11. Dockerfile + docker-compose.yml
-12. Проверка сборки
+11. Проверка сборки

@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     openrouter_model: str = "openrouter/free"
     whisper_model_size: str = "medium"
     database_path: str = "data/diary.db"
+    custom_prompt_path: str = ""
 
 
 settings = Settings()
