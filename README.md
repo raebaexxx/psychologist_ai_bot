@@ -1,14 +1,40 @@
 # Psychologist AI Bot
 
-Telegram-бот — личный психолог-терапевт. Принимает голосовые и текстовые сообщения, расшифровывает, анализирует через AI и даёт эмпатичный ответ психолога. К каждому голосовому сообщению прикладывает `.md` файл с полной расшифровкой для личного дневника.
+Telegram-бот — личный психолог-терапевт. Принимает голосовые и текстовые сообщения, расшифровывает, анализирует через AI и даёт эмпатичный ответ психолога. Поддерживает несколько терапевтических подходов, сессии, дневник с экспортом, анализ настроения и ежедневные напоминания.
 
 ## Возможности
 
 - **🎤 Голосовые сообщения** — расшифровка через faster-whisper (бесплатно, локально), анализ через OpenRouter, ответ психолога + `.md` файл с расшифровкой
 - **💬 Текстовые сообщения** — анализ и ответ психолога
-- **📔 Дневник** — к каждому голосовому приходит `.md` файл с полной расшифровкой и рефлексией терапевта (можно копировать в Obsidian / любой дневник)
 - **🧠 Контекст** — бот помнит историю диалога (хранится в SQLite)
+- **🔄 Терапевтические подходы** — 4 встроенных пресета (КПТ, гештальт, юнгианский, коуч) + свой промпт через Telegram
+- **📅 Сессии** — режим сессии с summary по завершении
+- **📔 Дневник** — к каждому сообщению приходит `.md` файл; экспорт всех записей в `.zip`
+- **📊 Настроение** — текстовый график тональности за 7 дней
+- **⏰ Напоминания** — ежедневные напоминания с фоновым daemon
 - **🔒 Конфиденциально** — всё хранится локально, твои данные не уходят третьим лицам (кроме OpenRouter)
+
+## Команды
+
+| Команда | Описание |
+|---|---|
+| `/start` | Приветствие + текущий терапевт |
+| `/help` | Список команд |
+| `/therapists` | Список доступных подходов |
+| `/select cbt` | Выбрать подход (cbt, gestalt, jungian, coach) |
+| `/prompt` | Показать текущий промпт |
+| `/setprompt <text>` | Установить свой промпт |
+| `/resetprompt` | Сбросить на дефолтный |
+| `/session` | Начать сессию |
+| `/endsession` | Завершить сессию + summary |
+| `/export [дней]` | Скачать дневник (.zip) |
+| `/stats` | Статистика диалогов |
+| `/mood` | График настроения |
+| `/remind daily 9:00 текст` | Создать напоминание |
+| `/reminds` | Мои напоминания |
+| `/remind cancel <id>` | Удалить напоминание |
+
+Также можно отправить `.txt` файл — он станет твоим системным промптом.
 
 ## Технологии
 
@@ -17,7 +43,7 @@ Telegram-бот — личный психолог-терапевт. Приним
 | Bot Framework | aiogram 3.29 |
 | Распознавание речи | faster-whisper (локально) |
 | AI | OpenRouter (бесплатные модели, `openrouter/free`) |
-| База данных | SQLite |
+| База данных | SQLite (aiosqlite) |
 | Пакетный менеджер | uv |
 | Аудио-конвертер | ffmpeg |
 
@@ -27,7 +53,7 @@ Telegram-бот — личный психолог-терапевт. Приним
 |---|---|---|---|
 | `tiny` | ~300 MB | 1 ядро | Базовое |
 | `base` | ~500 MB | 1 ядро | Среднее |
-| **`small`** | **~1 GB** | **1 ядро** | **Хорошее (рекомендуется для 2GB VPS)** |
+| **`small`** | **~1 GB** | **1 ядро** | **Хорошее (для 2GB VPS)** |
 | `medium` | ~2.5 GB | 2+ ядра | Отличное |
 | `large-v3` | ~6 GB | 4+ ядра | Максимальное |
 
@@ -35,7 +61,7 @@ Telegram-бот — личный психолог-терапевт. Приним
 
 ## Установка и запуск
 
-### 1. Клонировать репозиторий
+### 1. Клонировать
 
 ```bash
 git clone https://github.com/raebaexxx/psychologist_ai_bot.git
@@ -49,19 +75,12 @@ cp .env.example .env
 nano .env
 ```
 
-```
-BOT_TOKEN=токен_от_BotFather
-OPENROUTER_API_KEY=твой_ключ_openrouter
-OPENROUTER_MODEL=openrouter/free
-WHISPER_MODEL_SIZE=small
-DATABASE_PATH=data/diary.db
-CUSTOM_PROMPT_PATH=                    # оставить пустым для дефолтного промпта
-HF_TOKEN=                              # токен huggingface (ускоряет скачивание модели)
-```
+Параметры:
 
-- **BOT_TOKEN** — получить у [@BotFather](https://t.me/BotFather)
-- **OPENROUTER_API_KEY** — зарегистрироваться на [OpenRouter](https://openrouter.ai/), создать ключ (бесплатно, без карты)
-- **CUSTOM_PROMPT_PATH** — если хочешь свой системный промпт, укажи путь к `.txt` файлу
+- **BOT_TOKEN** — токен от [@BotFather](https://t.me/BotFather)
+- **OPENROUTER_API_KEY** — ключ от [OpenRouter](https://openrouter.ai/) (бесплатно, без карты)
+- **WHISPER_MODEL_SIZE** — размер модели (small для 2GB VPS)
+- **HF_TOKEN** — токен huggingface (ускоряет скачивание, опционально)
 
 ### 3. Установить зависимости
 
@@ -72,37 +91,18 @@ uv sync
 ### 4. Убедиться, что ffmpeg установлен
 
 ```bash
-# Linux (Debian/Ubuntu)
-sudo apt install ffmpeg
-
-# macOS
-brew install ffmpeg
-
-# Arch Linux
-sudo pacman -S ffmpeg
+sudo apt install ffmpeg      # Debian/Ubuntu
+brew install ffmpeg          # macOS
+sudo pacman -S ffmpeg        # Arch
 ```
 
-### 5. Скачать модель Whisper (одноразово)
+### 5. Скачать модель Whisper
 
-Для сервера с 2GB RAM:
 ```bash
 uv run python scripts/download_model.py small
 ```
-Для более мощных машин:
-```bash
-uv run python scripts/download_model.py medium
-```
 
-Модель сохраняется в `~/.cache/huggingface/hub/`. Укажи выбранный размер в `.env`: `WHISPER_MODEL_SIZE=small`.
-Если у тебя прокси (`all_proxy`), скрипт сам его уберёт на время скачивания.
-
-**Для ускорения скачивания** — создай бесплатный токен на [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) и передай его:
-
-```bash
-HF_TOKEN=hf_xxxxx uv run python scripts/download_model.py medium
-```
-
-Или добавь `HF_TOKEN=hf_xxxxx` в `.env`.
+Модель сохраняется в `~/.cache/huggingface/hub/`. Если есть системный прокси (`all_proxy`), скрипт сам его уберёт на время скачивания.
 
 ### 6. Запустить
 
@@ -110,9 +110,7 @@ HF_TOKEN=hf_xxxxx uv run python scripts/download_model.py medium
 uv run python -m bot.main
 ```
 
-## Запуск на сервере через tmux
-
-### Первый запуск
+## Запуск на сервере (tmux)
 
 ```bash
 tmux new-session -s psychologist
@@ -120,72 +118,62 @@ cd ~/psychologist_ai_bot
 uv run python -m bot.main
 ```
 
-Нажми `Ctrl+B`, затем `D` — отключиться от сессии. Бот останется работать в фоне.
+`Ctrl+B`, затем `D` — отключиться. Бот останется в фоне.
 
-### Управление
-
-| Действие | Команда |
-|---|---|
-| Подключиться к сессии | `tmux attach -t psychologist` |
-| Отключиться (оставив бота работать) | `Ctrl+B`, затем `D` |
-| Остановить бота | `tmux attach -t psychologist`, затем `Ctrl+C` |
-| Перезапустить бота | `tmux attach -t psychologist`, `Ctrl+C`, стрелка вверх, `Enter` |
-| Посмотреть список сессий | `tmux ls` |
-| Убить сессию | `tmux kill-session -t psychologist` |
-
-### Автозапуск при старте сервера (crontab)
+### Автозапуск (crontab)
 
 ```bash
 crontab -e
 ```
 
-Добавить строку:
 ```
 @reboot cd /root/psychologist_ai_bot && tmux new-session -d -s psychologist 'uv run python -m bot.main'
 ```
-
-## Системный промпт
-
-Промпт, задающий роль психолога, лежит в `bot/prompts/default_therapist.txt`. Ты можешь:
-
-- Отредактировать его напрямую — под свой стиль терапии
-- Создать свой `.txt` файл и указать путь в `CUSTOM_PROMPT_PATH` в `.env`
 
 ## Структура проекта
 
 ```
 psychologist_ai_bot/
 ├── bot/
-│   ├── main.py              # точка входа
-│   ├── config.py            # настройки из .env
+│   ├── main.py                 # точка входа
+│   ├── config.py               # настройки из .env
 │   ├── handlers/
-│   │   ├── commands.py      # /start, /help
-│   │   ├── voice.py         # голосовые сообщения
-│   │   └── text.py          # текстовые сообщения
+│   │   ├── commands.py         # все команды
+│   │   ├── voice.py            # голосовые сообщения
+│   │   └── text.py             # текстовые сообщения
 │   ├── services/
-│   │   ├── transcriber.py   # faster-whisper + ffmpeg
-│   │   ├── openrouter.py    # OpenRouter API
-│   │   └── diary.py         # генератор .md
+│   │   ├── transcriber.py      # faster-whisper + ffmpeg
+│   │   ├── punctuator.py       # расстановка пунктуации
+│   │   ├── openrouter.py       # OpenRouter API
+│   │   ├── diary.py            # генератор .md
+│   │   ├── export.py           # экспорт дневника
+│   │   ├── mood.py             # анализ настроения
+│   │   └── reminder.py         # напоминания (daemon)
 │   ├── database/
-│   │   ├── db.py            # SQLite
-│   │   └── models.py        # CRUD
+│   │   ├── db.py               # SQLite
+│   │   └── models.py           # CRUD
 │   └── prompts/
-│       ├── therapist.py     # загрузчик промпта
-│       └── default_therapist.txt
-├── .env
-├── pyproject.toml
-└── uv.lock
+│       ├── therapist.py        # загрузчик промпта
+│       ├── default_therapist.txt
+│       └── presets/
+│           ├── cbt.txt
+│           ├── gestalt.txt
+│           ├── jungian.txt
+│           └── coach.txt
+└── scripts/
+    └── download_model.py
 ```
 
-## Как это работает (голосовое сообщение)
+## Поток работы (голосовое сообщение)
 
 1. Ты отправляешь голосовое сообщение
 2. Бот скачивает `.ogg`, конвертирует в `.wav` (16kHz, моно) через ffmpeg
-3. **faster-whisper** распознаёт речь (любой язык)
-4. Расшифровка сохраняется в SQLite
-5. Текст + история диалога отправляются в OpenRouter с промптом психолога
-6. OpenRouter возвращает ответ
-7. Бот присылает: **ответ психолога** + **.md файл** для дневника
+3. **faster-whisper** распознаёт речь
+4. Правила расставляют пунктуацию
+5. Расшифровка + тональность сохраняются в SQLite
+6. Текст + история + выбранный промпт отправляются в OpenRouter
+7. OpenRouter возвращает ответ
+8. Бот присылает: **ответ психолога** + **.md файл** для дневника
 
 ## Лицензия
 
