@@ -41,6 +41,7 @@ def _make_session():
 
     proxy = os.environ.get("all_proxy") or os.environ.get("ALL_PROXY") or ""
     if proxy:
+        proxy = proxy.replace("socks://", "socks5://")
         logger.info("Using proxy: %s", proxy)
         return AiohttpSession(proxy=proxy)
     return AiohttpSession()
