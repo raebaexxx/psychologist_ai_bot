@@ -15,11 +15,23 @@ Telegram-бот — личный психолог-терапевт. Приним
 | Компонент | |
 |---|---|
 | Bot Framework | aiogram 3.29 |
-| Распознавание речи | faster-whisper (medium, локально) |
+| Распознавание речи | faster-whisper (локально) |
 | AI | OpenRouter (бесплатные модели, `openrouter/free`) |
 | База данных | SQLite |
 | Пакетный менеджер | uv |
 | Аудио-конвертер | ffmpeg |
+
+## Системные требования (Whisper)
+
+| Модель | RAM | CPU | Качество |
+|---|---|---|---|
+| `tiny` | ~300 MB | 1 ядро | Базовое |
+| `base` | ~500 MB | 1 ядро | Среднее |
+| **`small`** | **~1 GB** | **1 ядро** | **Хорошее (рекомендуется для 2GB VPS)** |
+| `medium` | ~2.5 GB | 2+ ядра | Отличное |
+| `large-v3` | ~6 GB | 4+ ядра | Максимальное |
+
+Выбирается параметром `WHISPER_MODEL_SIZE` в `.env`.
 
 ## Установка и запуск
 
@@ -71,11 +83,16 @@ sudo pacman -S ffmpeg
 
 ### 5. Скачать модель Whisper (одноразово)
 
+Для сервера с 2GB RAM:
+```bash
+uv run python scripts/download_model.py small
+```
+Для более мощных машин:
 ```bash
 uv run python scripts/download_model.py medium
 ```
 
-Это скачает модель ~1.5 ГБ в `~/.cache/huggingface/hub/`.
+Модель сохраняется в `~/.cache/huggingface/hub/`. Укажи выбранный размер в `.env`: `WHISPER_MODEL_SIZE=small`.
 Если у тебя прокси (`all_proxy`), скрипт сам его уберёт на время скачивания.
 
 **Для ускорения скачивания** — создай бесплатный токен на [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) и передай его:

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -7,6 +8,10 @@ from pathlib import Path
 from faster_whisper import WhisperModel
 
 from bot.services.punctuator import restore_punctuation as _restore_punctuation
+
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 logger = logging.getLogger(__name__)
 
@@ -87,8 +92,10 @@ async def transcribe_voice(ogg_path: str | Path) -> str:
             )
             segments, info = _model.transcribe(
                 wav_path,
-                beam_size=5,
+                beam_size=3,
                 vad_filter=True,
+                condition_on_previous_text=False,
+                no_speech_threshold=0.6,
             )
             text_parts = [seg.text for seg in segments]
             raw_text = " ".join(text_parts)
