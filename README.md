@@ -45,7 +45,7 @@ cd psychologist_ai_bot
 ### 2. Настроить `.env`
 
 ```bash
-cp .env .env.example  # для сохранности
+cp .env.example .env
 nano .env
 ```
 
@@ -53,9 +53,10 @@ nano .env
 BOT_TOKEN=токен_от_BotFather
 OPENROUTER_API_KEY=твой_ключ_openrouter
 OPENROUTER_MODEL=openrouter/free
-WHISPER_MODEL_SIZE=medium
+WHISPER_MODEL_SIZE=small
 DATABASE_PATH=data/diary.db
 CUSTOM_PROMPT_PATH=                    # оставить пустым для дефолтного промпта
+HF_TOKEN=                              # токен huggingface (ускоряет скачивание модели)
 ```
 
 - **BOT_TOKEN** — получить у [@BotFather](https://t.me/BotFather)
